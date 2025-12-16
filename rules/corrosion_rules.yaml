@@ -1,0 +1,32 @@
+- id: CORR_001
+  source: "СП 284.1325800.2016"
+  if:
+    defect.depth_percent: High
+    operation.pressure_ratio: High
+  then:
+    risk: High
+    action: ResidualStrengthAssessment
+
+- id: CORR_002
+  source: "ASME B31G"
+  if:
+    defect.depth_percent: Extreme
+  then:
+    risk: Critical
+    action: ImmediateShutdown
+
+- id: CORR_003
+  source: "ISO 15589"
+  if:
+    environment.soil_aggressiveness: High
+    cathodic_protection: Weak
+  then:
+    corrosion_rate: High
+
+- id: CORR_004
+  source: "API 579"
+  if:
+    corrosion_rate: High
+    defect.depth_percent: High
+  then:
+    remaining_life: Low

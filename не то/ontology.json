@@ -1,0 +1,42 @@
+{
+  "Entities": {
+    "Pipeline": {
+      "attributes": ["diameter", "wall_thickness", "pressure", "temperature", "year_built"]
+    },
+    "Segment": {
+      "attributes": ["start_km", "end_km", "location_type"]
+    },
+    "Defect": {
+      "attributes": ["type", "depth_percent", "length_mm", "width_mm"]
+    },
+    "Environment": {
+      "attributes": ["soil_type", "soil_aggressiveness", "permafrost"]
+    },
+    "Operation": {
+      "attributes": ["pressure_level", "load_cycles"]
+    }
+  },
+
+  "DefectTypes": [
+    "ExternalCorrosion",
+    "InternalCorrosion",
+    "Crack",
+    "Dent",
+    "Ovality"
+  ],
+
+  "RiskLevels": [
+    "Low",
+    "Medium",
+    "High",
+    "Critical"
+  ],
+
+  "Actions": [
+    "ContinueOperation",
+    "MonitoringRequired",
+    "ResidualStrengthAssessment",
+    "RepairRequired",
+    "ImmediateShutdown"
+  ]
+}

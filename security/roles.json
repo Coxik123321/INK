@@ -1,0 +1,5 @@
+{
+  "Admin": ["import", "calculate", "edit", "export"],
+  "Engineer": ["import", "calculate", "export"],
+  "Viewer": ["view"]
+}
