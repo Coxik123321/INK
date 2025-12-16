@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Pipeline Risk Map</title>
+
+    <link
+        rel="stylesheet"
+        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    />
+
+    <style>
+        body { margin: 0; font-family: Arial, sans-serif; }
+        #map { width: 100%; height: 90vh; }
+        header { padding: 10px; background: #1f2937; color: white; }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <h2>Карта рисков трубопровода</h2>
+
+    <label>
+        Минимальный приоритет:
+        <select id="priorityFilter">
+            <option value="">Все</option>
+            <option value="0.4">≥ 0.4</option>
+            <option value="0.6">≥ 0.6</option>
+            <option value="0.8">≥ 0.8</option>
+        </select>
+    </label>
+
+    <label style="margin-left:15px;">
+        Тип дефекта:
+        <select id="typeFilter">
+            <option value="">Все</option>
+            <option value="corrosion">Коррозия</option>
+            <option value="crack">Трещина</option>
+            <option value="dent">Вмятина</option>
+            <option value="weld">Сварной шов</option>
+        </select>
+    </label>
+
+    <button onclick="loadSegments()" style="margin-left:10px;">
+        Применить
+    </button>
+</header>
+
+
+<div id="map"></div>
+<canvas id="forecastChart" width="400" height="200"></canvas>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const map = L.map('map').setView([55.75, 37.61], 5);
+    let geoLayer = null;
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 18
+    }).addTo(map);
+
+    function loadSegments() {
+        if (geoLayer) {
+            geoLayer.remove();
+        }
+
+        const minPriority = document.getElementById("priorityFilter").value;
+        const defectType = document.getElementById("typeFilter").value;
+
+        let url = "/api/segments?";
+        if (minPriority) url += `min_priority=${minPriority}&`;
+        if (defectType) url += `defect_type=${defectType}`;
+
+        fetch(url)
+            .then(res => res.json())
+            .then(data => {
+                geoLayer = L.geoJSON(data, {
+                    pointToLayer: (feature, latlng) => {
+                        const p = feature.properties.priority;
+                        let color = p >= 0.8 ? 'red' :
+                                    p >= 0.6 ? 'orange' :
+                                    p >= 0.4 ? 'yellow' : 'green';
+
+                        return L.circleMarker(latlng, {
+                            radius: 8,
+                            fillColor: color,
+                            color: '#000',
+                            weight: 1,
+                            fillOpacity: 0.85
+                        });
+                    },
+                    onEachFeature: (feature, layer) => {
+                        const p = feature.properties;
+
+                        layer.bindPopup(`
+                            <b>Сегмент:</b> ${p.segment_id}<br>
+                            <b>Дефект:</b> ${p.defect_type}<br>
+                            <b>Приоритет:</b> ${p.priority}<br>
+                            <b>Давление:</b> ${p.pressure || '-'} МПа<br>
+                            <b>Рекомендация:</b> <b>${p.action}</b><br><br>
+                            <button onclick="loadHistory(${p.segment_id})">
+                                История дефекта
+                            </button>
+                        `);
+                    }
+                }).addTo(map);
+            });
+    }
+    fetch("/api/pipelines/geojson")
+        .then(r => r.json())
+        .then(data => {
+          L.geoJSON(data, {
+            style: f => {
+              const r = f.properties.risk || 0;
+              let color = "green";
+              if (r > 0.7) color = "red";
+              else if (r > 0.4) color = "orange";
+            
+              return { color, weight: 5 };
+            },
+            onEachFeature: (f, layer) => {
+              layer.bindPopup(
+                `Segment ID: ${f.properties.segment_id}<br>
+                 Risk: ${f.properties.risk}<br>
+                 Action: ${f.properties.action}`
+              );
+            }
+          }).addTo(map);
+        });
+
+    function loadHistory(segmentId) {
+    fetch(`/api/segments/${segmentId}/history`)
+        .then(res => res.json())
+        .then(data => {
+            let text = `История сегмента ${data.segment_id}\n\n`;
+            let dates = [];
+            let priorities = [];
+            
+            data.history.forEach(h => {
+                text += `${h.date} | priority=${h.priority} | action=${h.action}\n`;
+                dates.push(h.date);
+                priorities.push(h.priority);
+            });
+
+            alert(text);
+
+            // Отображаем график прогноза
+            showForecastChart(dates, priorities);
+        });
+}
+
+    function showForecastChart(dates, priorities) {
+        const ctx = document.getElementById('forecastChart').getContext('2d');
+
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: dates,
+                datasets: [{
+                    label: 'Приоритет дефекта',
+                    data: priorities,
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1,
+                    fill: false
+                }]
+            },
+            options: {
+                scales: {
+                    x: {
+                        type: 'time',
+                        time: {
+                            unit: 'day'
+                        }
+                    },
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    }
+
+    loadSegments();
+</script>
+<script>
+function getColor(p) {
+  return p > 0.8 ? "#d73027" :
+         p > 0.6 ? "#fc8d59" :
+         p > 0.4 ? "#fee08b" :
+         "#1a9850";
+}
+
+fetch("/api/segments", {
+  headers: {
+    "Authorization": "Bearer " + localStorage.getItem("token")
+  }
+})
+.then(r => r.json())
+.then(data => {
+  L.geoJSON(data, {
+    pointToLayer: (f, latlng) =>
+      L.circleMarker(latlng, {
+        radius: 10,
+        fillColor: getColor(f.properties.priority),
+        color: "#000",
+        weight: 1,
+        fillOpacity: 0.85
+      }),
+    onEachFeature: (f, l) => {
+      l.bindPopup(`
+        <b>Segment ${f.properties.segment_id}</b><br>
+        Priority: ${f.properties.priority}<br>
+        Action: ${f.properties.action}
+      `);
+    }
+  }).addTo(map);
+});
+</script>
+
+
+</body>
+</html>

@@ -1,0 +1,13 @@
+#map { width: 100%; height: 80vh; }
+.filters {
+  background: white; padding: 10px; margin-bottom: 10px;
+  border-radius: 5px; box-shadow: 0 0 10px rgba(0,0,0,0.2);
+}
+.filters label { margin-right: 15px; }
+.filters input, .filters select { margin-left: 5px; }
+.legend {
+  background: white; padding: 10px; line-height: 1.5;
+  position: absolute; bottom: 30px; left: 30px; z-index: 1000; border-radius: 5px;
+  box-shadow: 0 0 15px rgba(0,0,0,0.2);
+}
+.legend span { display: inline-block; width: 12px; height: 12px; margin-right: 5px; }

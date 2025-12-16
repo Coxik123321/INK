@@ -1,0 +1,39 @@
+{
+  "Pipeline": {
+    "type": ["Mainline", "Field"],
+    "product": ["Gas", "Oil"],
+    "attributes": {
+      "diameter_mm": "number",
+      "wall_thickness_mm": "number",
+      "design_pressure_mpa": "number",
+      "year_built": "number"
+    }
+  },
+  "Segment": {
+    "attributes": {
+      "km_start": "number",
+      "km_end": "number",
+      "region": "string"
+    }
+  },
+  "Defect": {
+    "types": ["ExternalCorrosion", "InternalCorrosion", "Crack", "Dent"],
+    "attributes": {
+      "depth_percent": "number",
+      "length_mm": "number",
+      "width_mm": "number"
+    }
+  },
+  "Environment": {
+    "soil_aggressiveness": ["Low", "Medium", "High"],
+    "permafrost": ["Yes", "No"]
+  },
+  "Risk": ["Low", "Medium", "High", "Critical"],
+  "Actions": [
+    "ContinueOperation",
+    "Monitoring",
+    "ResidualStrengthAssessment",
+    "Repair",
+    "ImmediateShutdown"
+  ]
+}

@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <title>Pipeline AI DSS</title>
+</head>
+<body>
+  <h1>Pipeline AI DSS</h1>
+
+  <label>Риск (0–1):</label>
+  <input id="risk" type="number" step="0.01" value="0.8"><br><br>
+
+  <label>Остаточный ресурс (лет):</label>
+  <input id="life" type="number" step="0.1" value="4"><br><br>
+
+  <button onclick="rank()">Рассчитать приоритет</button>
+
+  <h3 id="result"></h3>
+
+  <script src="app.js"></script>
+</body>
+</html>
